@@ -8,7 +8,8 @@ open import Data.Unit
 open import Data.Product using (_×_ ; Σ ; proj₁ ; proj₂)
 --open import Agda.Builtin.Sigma
 --open import Agda.Builtin.Bool
-open import Agda.Builtin.Equality
+open import Relation.Binary.PropositionalEquality
+  using (_≡_; refl; sym; trans; subst)
 open import Agda.Builtin.Nat using (Nat) renaming (zero to Z ; suc to S)
 import Level
 open import Level.Literals
@@ -147,6 +148,10 @@ stripsub {n} {Γ , τ} γ z = unCV (proj₁ (γ z))
 stripsub {S n} {Γ , τ} γ (s x) = stripsub {n} {Γ} (\y → γ (s y)) x
 
 --commute : ∀ {Γ γ τ} {x} → sub (stripsub γ) (strip (′ x)) ≡ proj₁ (γ x)
+stripsub-ext$ : ∀{n} {Γ : Ctx n} {γ : G⟦ Γ ⟧} {τ : Typ T} {v} {w : v ∈V⟦ τ ⟧} (x : < S n)
+              → stripsub (ext$ γ v w) x ≡ ext (stripsub γ) (unCV v) x
+stripsub-ext$ z = refl
+stripsub-ext$ (s x) = refl
 
 lam-compat : ∀{e τ₁ ρ τ₂} → (∀{v} → v ∈V⟦ τ₁ ⟧ → sub1 (unCV v) e ∈E⟦ τ₂ / ρ ⟧) → ƛ e ∈E⟦ τ₁ - ρ ⇒ τ₂ / ι ⟧
 lam-compat {e} f = let cv = CV (ƛ e) {VLam} in Evl (eval {_} {cv} (↠id (ƛ e))) (\v u → f u) -- TODO: ugly
@@ -157,7 +162,10 @@ lift-compat (Stk t so f k) = Stk (plugr* (Lift Hole) t) so (flift f) (\u w → l
 
 compat : ∀{n} {Γ : Ctx n} {τ ρ} {e : Exp n} → Γ ⊢ e ⦂ τ / ρ → (γ : G⟦ Γ ⟧) → sub (stripsub γ) e ∈E⟦ τ / ρ ⟧
 compat {_} {Γ} {_} {_} {.(′ (stripvar x))} (T-var x) γ = {!!}
-compat {_} {Γ} {_} {_} {.(ƛ _)} (T-lam d) γ = lam-compat (\{v} w → let p = compat d (ext$ γ v w) in {!!})
+compat {_} {Γ} {_} {_} {(ƛ e)} (T-lam d) γ =
+  lam-compat (\{v} w → let p = compat d (ext$ γ v w)
+                           eq = sub1-comp {γ = stripsub γ} {e' = unCV v} {e = e} in
+                           subst _∈E⟦ _ / _ ⟧ (trans (sub-cong stripsub-ext$ e) (sym eq)) p)
 compat {_} {Γ} {_} {_} {.(_ · _)} (T-app d d₁) γ = {!!}
 compat {_} {Γ} {_} {_} {([ e ])} (T-lift d) γ = lift-compat (compat d γ)
 compat {_} {Γ} {_} {_} {.(do' _)} (T-do d) γ = {!!}
