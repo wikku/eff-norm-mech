@@ -21,26 +21,26 @@ data _↠*_ : Exp Z → Exp Z → Set where
   _↠trans_ : ∀{e e' e''} → e ↠* e' → e' ↠* e'' → e ↠* e''
 
 
-fun-cong : ∀{e e'} a → e ↠ e' → (e · a) ↠ (e' · a)
-fun-cong a (cong K r) = cong (Fun K a) r
+Fun-cong : ∀{e e'} a → e ↠ e' → (e · a) ↠ (e' · a)
+Fun-cong a (cong K r) = cong (Fun K a) r
 
-arg-cong : ∀{e e'} v → Val v → e ↠ e' → (v · e) ↠ (v · e')
-arg-cong v u (cong K r) = cong (Arg v {u} K) r
+Arg-cong : ∀{e e'} v → Val v → e ↠ e' → (v · e) ↠ (v · e')
+Arg-cong v u (cong K r) = cong (Arg v {u} K) r
 
-lift-cong : ∀{e e'} → e ↠ e' → [ e ] ↠ [ e' ]
-lift-cong (cong K r) = cong (Lift K) r
+Lift-cong : ∀{e e'} → e ↠ e' → [ e ] ↠ [ e' ]
+Lift-cong (cong K r) = cong (Lift K) r
 
-hndl-cong : ∀{e e'} eₕ eᵣ → e ↠ e' → (hndl e eₕ eᵣ) ↠ (hndl e' eₕ eᵣ)
-hndl-cong eₕ eᵣ (cong K x) = cong (Hndl K eₕ eᵣ) x
+Hndl-cong : ∀{e e'} eₕ eᵣ → e ↠ e' → (hndl e eₕ eᵣ) ↠ (hndl e' eₕ eᵣ)
+Hndl-cong eₕ eᵣ (cong K x) = cong (Hndl K eₕ eᵣ) x
 
 plugr : (K : Ktx Z) → ∀{e e'} → e ↠ e' → plug K e ↠ plug K e'
 plugr Hole (cong K₁ r) = cong K₁ r
-plugr (Fun K x) t = fun-cong x (plugr K t)
+plugr (Fun K x) t = Fun-cong x (plugr K t)
 --plugr (Fun K x) t with (plugr K t)
 --... | w = {!!} -- can't generalize because needs ∀{K[e] K[e']}??? TODO
-plugr (Arg v {u} K) t = arg-cong v u (plugr K t)
-plugr (Lift K) t = lift-cong (plugr K t)
-plugr (Hndl K eₕ eᵣ) t = hndl-cong eₕ eᵣ (plugr K t)
+plugr (Arg v {u} K) t = Arg-cong v u (plugr K t)
+plugr (Lift K) t = Lift-cong (plugr K t)
+plugr (Hndl K eₕ eᵣ) t = Hndl-cong eₕ eᵣ (plugr K t)
 
 plugr* : (K : Ktx Z) → ∀{e e'} → e ↠* e' → plug K e ↠* plug K e'
 plugr* K (↠id e) = ↠id (plug K e)
