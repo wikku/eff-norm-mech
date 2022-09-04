@@ -153,6 +153,12 @@ stripsub-ext$ : ∀{n} {Γ : Ctx n} {γ : G⟦ Γ ⟧} {τ : Typ T} {v} {w : v �
 stripsub-ext$ z = refl
 stripsub-ext$ (s x) = refl
 
+stripsub-stripvar : ∀{n} {Γ : Ctx n} {γ : G⟦ Γ ⟧} {τ : Typ T} (x : Γ ∋ τ)
+                  → unCV (proj₁ (γ x)) ≡ stripsub γ (stripvar x)
+stripsub-stripvar z = refl
+stripsub-stripvar (s x) = stripsub-stripvar x
+
+
 lam-compat : ∀{e τ₁ ρ τ₂} → (∀{v} → v ∈V⟦ τ₁ ⟧ → sub1 (unCV v) e ∈E⟦ τ₂ / ρ ⟧) → ƛ e ∈E⟦ τ₁ - ρ ⇒ τ₂ / ι ⟧
 lam-compat {e} f = let cv = CV (ƛ e) {VLam} in Evl (eval {_} {cv} (↠id (ƛ e))) (\v u → f u) -- TODO: ugly
 
@@ -161,7 +167,11 @@ lift-compat (Evl (eval {_} {v} t) w) = Evl (eval (plugr* (Lift Hole) t ↠trans 
 lift-compat (Stk t so f k) = Stk (plugr* (Lift Hole) t) so (flift f) (\u w → lift-compat (k u w))
 
 compat : ∀{n} {Γ : Ctx n} {τ ρ} {e : Exp n} → Γ ⊢ e ⦂ τ / ρ → (γ : G⟦ Γ ⟧) → sub (stripsub γ) e ∈E⟦ τ / ρ ⟧
-compat {_} {Γ} {_} {_} {.(′ (stripvar x))} (T-var x) γ = {!!}
+-- compat {_} {Γ} {_} {_} {.(′ (stripvar x))} (T-var x) γ with γ x
+-- ... | v Data.Product., w = Evl (subst (_↠v v) (stripsub-stripvar x) (eval (↠id (unCV v)))) w
+compat {_} {Γ} {_} {_} {.(′ (stripvar x))} (T-var x) γ =
+  let v = proj₁ (γ x); w = proj₂ (γ x) in
+  Evl (subst (_↠v v) (stripsub-stripvar x) (eval (↠id (unCV v)))) w
 compat {_} {Γ} {_} {_} {(ƛ e)} (T-lam d) γ =
   lam-compat (\{v} w → let p = compat d (ext$ γ v w)
                            eq = sub1-comp {γ = stripsub γ} {e' = unCV v} {e = e} in
