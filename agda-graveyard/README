@@ -1,0 +1,16 @@
+It seems the model is inherently impredicative, so Agda can't work.
+
+SemType : Set (n+1)
+SemType = CVal → Set n
+data StkOp : Set (n+1) where
+  SO : CVal → Nat → SemType → StkOp
+
+SemEff : Set (n+1)
+SemEff = StkOp → Set n
+
+We want to plug in V⟦ τ ⟧ as the SemType in SO.
+So we want _∈V⟦ τ ⟧ : SemType
+
+But the definition of _∈V⟦_⟧ uses _∈E[_/_],
+which has to be in Set (n+1),
+since its constructors quantify over SemTypes.
