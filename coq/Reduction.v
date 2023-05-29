@@ -18,7 +18,7 @@ Inductive red : exp0 → exp0 → Set :=
 | r_hndl : ∀ {e1 e2} eh er, red e1 e2 → red (e_hndl e1 eh er) (e_hndl e2 eh er)
 .
 
-Inductive redm : exp0 → exp0 → Set :=
+Inductive redm : exp0 → exp0 → Prop :=
 | r_id : ∀ e, redm e e
 | r_one : ∀ e1 e2, red e1 e2 → redm e1 e2
 | r_trans : ∀ e1 e2 e3, redm e1 e2 → redm e2 e3 → redm e1 e3
@@ -41,7 +41,7 @@ Proof.
   intros.
   induction H.
   - apply r_id.
-  - apply r_one. apply plug_red. exact r.
+  - apply r_one. apply plug_red. assumption.
   - eapply r_trans.
     + exact IHredm1.
     + exact IHredm2.
@@ -53,7 +53,7 @@ Proof.
   remember (e_val v) as v0 in H.
   induction H.
   - symmetry. assumption.
-  - subst e1. inversion r. inversion H.
+  - subst e1. inversion H. inversion H0.
   - subst e1.
     specialize (IHredm1 eq_refl).
     transitivity e2.

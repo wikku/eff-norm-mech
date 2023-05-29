@@ -303,13 +303,19 @@ Proof.
         trivial.
 Qed.
 
-(*
 Theorem termination
   : ∀ e τ, types (fun x : Empty_set => match x with end) e τ t_empty
-  → ∃ v,  redm e (e_val v).
+  → ∃ v, redm e (e_val v).
 Proof.
   intros.
   eapply fundamental in H.
   unfold E in H.
-  destruct H.
-*)
+  inversion H.
+  - econstructor.
+    erewrite bind_pure_exp in H0.
+    exact H0.
+  - inversion H1.
+  - unfold G.
+    intros.
+    contradiction.
+Qed.
